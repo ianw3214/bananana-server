@@ -6,6 +6,7 @@ import os
 
 # WebSocket server example
 async def hello(websocket, path):
+    print("HELLO FUNCTION START")
     name = await websocket.recv()
     print(f"< {name}")
 
@@ -14,7 +15,8 @@ async def hello(websocket, path):
     await websocket.send(greeting)
     print(f"> greeting")
 
-start_server = websockets.serve(hello, "0.0.0.0", os.environ["PORT"]);
+start_server = websockets.serve(hello, "0.0.0.0", os.environ["PORT"])
 
+print("SERVER STARTED")
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
