@@ -4,16 +4,26 @@ import asyncio
 import websockets
 import os
 
+# TEMPORARY
+import datetime
+import random
+
 # WebSocket server example
 async def hello(websocket, path):
     print("HELLO FUNCTION START")
-    name = await websocket.recv()
-    print(f"< {name}")
+    
+    while True:
+            now = datetime.datetime.utcnow().isoformat() + "Z"
+            await websocket.send(now)
+            await asyncio.sleep(random.random() * 3)
 
-    greeting = f"Hello {name}!"
+    # name = await websocket.recv()
+    # print(f"< {name}")
 
-    await websocket.send(greeting)
-    print(f"> greeting")
+    # greeting = f"Hello {name}!"
+
+    # await websocket.send(greeting)
+    # print(f"> greeting")
 
 start_server = websockets.serve(hello, "0.0.0.0", os.environ["PORT"])
 
