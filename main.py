@@ -2,6 +2,7 @@
 
 import asyncio
 import websockets
+import os
 
 # WebSocket server example
 async def hello(websocket, path):
@@ -13,7 +14,7 @@ async def hello(websocket, path):
     await websocket.send(greeting)
     print(f"> greeting")
 
-start_server = websockets.serve(hello, "localhost", 8765);
+start_server = websockets.serve(hello, "0.0.0.0", os.getenv["PORT"]);
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
