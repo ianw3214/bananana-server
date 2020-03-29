@@ -9,7 +9,12 @@ import json
 import datetime
 import random
 
+CONNECTED = set()
 CLIENTS = []
+
+async def sendMessage(message):
+    for socket in CONNECTED:
+        socket.send(message)
 
 async def consumer(message):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
@@ -17,24 +22,28 @@ async def consumer(message):
     print(command)
     if command["command"] == "create":
         CLIENTS.append({"id": command["id"]})
+        MESSAGES.append({"command":"create", "id":command["id"], "x":0, "y":0})
     print(CLIENTS)
 
 async def producer():
-    now = datetime.datetime.utcnow().isoformat() + "Z"
-    return now
+    pass    
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(message)
 
 async def producer_handler(websocket, path):
-    while True:
-        message = await producer()
-        await websocket.send(message)
-        await asyncio.sleep(random.random() * 5)
+    pass
+    # while True:
+    #     message = await producer()
+    #     await websocket.send(message)
+        # SEND MESSAGES AT A 1 SECOND INTERVAL
+        # await asyncio.sleep(1)
 
 # WebSocket server example
 async def hello(websocket, path):
+    # ADD THE WEBSOCKET TO THE PATH FOR EASY MESSAGE BROADCASTING
+    CONNECTED.add(websocket)
     consumer_task = asyncio.ensure_future(consumer_handler(websocket, path))
     producer_task = asyncio.ensure_future(producer_handler(websocket, path))
     done, pending = await asyncio.wait(
