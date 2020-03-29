@@ -11,16 +11,20 @@ import random
 
 CLIENTS = []
 
+async def sendMessage(message):
+    for client in CLIENTS:
+        client["messages"].append(message)
 
 async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
     command = json.loads(message)
     print(command)
     if command["command"] == "create":
-        CLIENTS.append({"id": command["id"], "socket": websocket, "messages":[
-            # Have an initial message in the client to signal it has joined
-            {"command": "create", "id": command["id"], "x":0, "y":0}
-        ]})
+        CLIENTS.append({"id": command["id"], "socket": websocket, "messages":[]})
+        # Have an initial message in the client to signal it has joined
+        sendMessage({"command": "create", "id": command["id"], "x": 0, "y": 0})
+    if command["command"] == "move":
+        sendMessage({"command": "move", "id": command["id"], "x": command["x"], "y": command["y"]})
     print(CLIENTS)
 
 async def producer(websocket):
@@ -40,7 +44,7 @@ async def producer_handler(websocket, path):
         if message is not None:
             await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
 # WebSocket server example
 async def hello(websocket, path):
