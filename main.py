@@ -14,7 +14,7 @@ CLIENTS = []
 
 async def sendMessage(message):
     for socket in CONNECTED:
-        socket.send(message)
+        await socket.send(message)
 
 async def consumer(message):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
