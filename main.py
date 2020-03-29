@@ -23,6 +23,7 @@ async def consumer(message, websocket):
         # NOTIFY THE CLIENT OF EXISTING CLIENTS
         messages = []
         for client in CLIENTS:
+            print(client)
             messages.append({"command": "create", "id": client["id"], "x": client["x"], "y": client["y"]})
         CLIENTS.append({"id": command["id"], "socket": websocket, "messages": messages})
         # Have an initial message in the client to signal it has joined
