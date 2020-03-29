@@ -9,41 +9,40 @@ import json
 import datetime
 import random
 
-CONNECTED = set()
 CLIENTS = []
 
-async def sendMessage(message):
-    for socket in CONNECTED:
-        await socket.send(message)
 
-async def consumer(message):
+async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
     command = json.loads(message)
     print(command)
     if command["command"] == "create":
-        CLIENTS.append({"id": command["id"]})
-        sendMessage({"command":"create", "id":command["id"], "x":0, "y":0})
+        CLIENTS.append({"id": command["id"], "socket": websocket, "messages":[
+            # Have an initial message in the client to signal it has joined
+            {"command": "create", "id": command["id"], "x":0, "y":0}
+        ]})
     print(CLIENTS)
 
-async def producer():
-    pass    
+async def producer(websocket):
+    for client in CLIENTS:
+        if client["socket"] == websocket:
+            if len(client["messages"]) > 0:
+                return client["messages"].pop(0)
+            
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
-        await consumer(message)
+        await consumer(message, websocket)
 
 async def producer_handler(websocket, path):
-    pass
-    # while True:
-    #     message = await producer()
-    #     await websocket.send(message)
+    while True:
+        message = await producer(websocket)
+        await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
-        # await asyncio.sleep(1)
+        await asyncio.sleep(1)
 
 # WebSocket server example
 async def hello(websocket, path):
-    # ADD THE WEBSOCKET TO THE PATH FOR EASY MESSAGE BROADCASTING
-    CONNECTED.add(websocket)
     consumer_task = asyncio.ensure_future(consumer_handler(websocket, path))
     producer_task = asyncio.ensure_future(producer_handler(websocket, path))
     done, pending = await asyncio.wait(
