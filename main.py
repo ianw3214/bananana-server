@@ -37,8 +37,8 @@ async def consumer_handler(websocket, path):
 async def producer_handler(websocket, path):
     while True:
         message = await producer(websocket)
-        print(type(message))
-        await websocket.send(message)
+        if message is not None:
+            await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
         await asyncio.sleep(1)
 
