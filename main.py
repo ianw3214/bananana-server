@@ -22,7 +22,7 @@ async def consumer(message):
     print(command)
     if command["command"] == "create":
         CLIENTS.append({"id": command["id"]})
-        MESSAGES.append({"command":"create", "id":command["id"], "x":0, "y":0})
+        sendMessage({"command":"create", "id":command["id"], "x":0, "y":0})
     print(CLIENTS)
 
 async def producer():
