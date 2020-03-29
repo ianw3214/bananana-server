@@ -22,9 +22,10 @@ async def consumer(message, websocket):
     if command["command"] == "create":
         CLIENTS.append({"id": command["id"], "socket": websocket, "messages":[]})
         # Have an initial message in the client to signal it has joined
-        sendMessage({"command": "create", "id": command["id"], "x": 0, "y": 0})
+        await sendMessage({"command": "create", "id": command["id"], "x": 0, "y": 0})
     if command["command"] == "move":
-        sendMessage({"command": "move", "id": command["id"], "x": command["x"], "y": command["y"]})
+        # TODO: Update the client here too
+        await sendMessage({"command": "move", "id": command["id"], "x": command["x"], "y": command["y"]})
     print(CLIENTS)
 
 async def producer(websocket):
