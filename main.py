@@ -3,13 +3,21 @@
 import asyncio
 import websockets
 import os
+import json
 
 # TEMPORARY
 import datetime
 import random
 
+CLIENTS = []
+
 async def consumer(message):
-    print(message)
+    # ASSUME INCOMING MESSAGE IS A JSON OBJECT
+    command = json.loads(message)
+    print(command)
+    if command["command"] == "create":
+        CLIENTS.append({"id": command["id"]})
+    print(CLIENTS)
 
 async def producer():
     now = datetime.datetime.utcnow().isoformat() + "Z"
@@ -27,8 +35,6 @@ async def producer_handler(websocket, path):
 
 # WebSocket server example
 async def hello(websocket, path):
-    print("HELLO FUNCTION START")
-    
     consumer_task = asyncio.ensure_future(consumer_handler(websocket, path))
     producer_task = asyncio.ensure_future(producer_handler(websocket, path))
     done, pending = await asyncio.wait(
@@ -37,11 +43,6 @@ async def hello(websocket, path):
     )
     for task in pending:
             task.cancel()
-
-    # while True:
-    #         now = datetime.datetime.utcnow().isoformat() + "Z"
-    #         await websocket.send(now)
-    #         await asyncio.sleep(random.random() * 3)
 
 start_server = websockets.serve(hello, "0.0.0.0", os.environ["PORT"])
 
