@@ -22,7 +22,6 @@ async def consumer(message, websocket):
         # NOTIFY THE CLIENT OF EXISTING CLIENTS
         messages = []
         for client in CLIENTS:
-            print(client)
             messages.append({"command": "create", "id": client["id"], "x": client["x"], "y": client["y"]})
         CLIENTS.append({"id": command["id"], "socket": websocket, "messages": messages})
         # Have an initial message in the client to signal it has joined
@@ -44,7 +43,13 @@ async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(message, websocket)
     # Once the while loop breaks, that means the client has disconnected
-    print("CLIENT DISCONNECTED")
+    target = 0
+    for client in CLIENTS:
+        if client["socket"] == websocket:
+            target = client["id"]
+            CLIENTS.remove(client)
+    if target != 0:
+        await sendMessage({"command": "remove", "id": target})
 
 async def producer_handler(websocket, path):
     while True:
@@ -53,8 +58,6 @@ async def producer_handler(websocket, path):
             await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
         await asyncio.sleep(0.5)
-    # Once the while loop breaks, that means the client has disconnected
-    print("CLIENT DISCONNECTED")
 
 # WebSocket server example
 async def hello(websocket, path):
