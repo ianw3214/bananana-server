@@ -18,7 +18,6 @@ async def sendMessage(message):
 async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
     command = json.loads(message)
-    print(command)
     if command["command"] == "create":
         # NOTIFY THE CLIENT OF EXISTING CLIENTS
         messages = []
@@ -34,14 +33,12 @@ async def consumer(message, websocket):
                 client["x"] = command["x"]
                 client["y"] = command["y"]
         await sendMessage({"command": "move", "id": command["id"], "x": command["x"], "y": command["y"]})
-    print(CLIENTS)
 
 async def producer(websocket):
     for client in CLIENTS:
         if client["socket"] == websocket:
             if len(client["messages"]) > 0:
-                return json.dumps(client["messages"].pop(0))
-            
+                return json.dumps(client["messages"].pop(0))            
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
@@ -54,6 +51,8 @@ async def producer_handler(websocket, path):
             await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
         await asyncio.sleep(0.5)
+    # Once the while loop breaks, that means the client has disconnected
+    print("CLIENT DISCONNECTED")
 
 # WebSocket server example
 async def hello(websocket, path):
