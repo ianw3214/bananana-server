@@ -25,7 +25,7 @@ async def consumer(message, websocket):
             messages.append({"command": "create", "id": client["id"], "x": client["x"], "y": client["y"]})
         CLIENTS.append({"id": command["id"], "socket": websocket, "messages": messages})
         # Have an initial message in the client to signal it has joined
-        await sendMessage({"command": "create", "id": command["id"], "x": 0, "y": 0})
+        await sendMessage({"command": "create", "id": command["id"], "x": 320, "y": 240})
     if command["command"] == "move":
         for client in CLIENTS:
             if client["id"] == command["id"]:
