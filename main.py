@@ -43,6 +43,8 @@ async def producer(websocket):
 async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(message, websocket)
+    # Once the while loop breaks, that means the client has disconnected
+    print("CLIENT DISCONNECTED")
 
 async def producer_handler(websocket, path):
     while True:
