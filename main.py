@@ -37,7 +37,9 @@ async def producer(websocket):
     for client in CLIENTS:
         if client["socket"] == websocket:
             if len(client["messages"]) > 0:
-                return json.dumps(client["messages"].pop(0))            
+                message = { "messages": client["messages"].copy() }
+                client["messages"].clear()
+                return json.dumps(message)
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
