@@ -53,6 +53,8 @@ async def consumer(message, websocket):
             messages.append({"command": "create", "id": client["id"], "x": client["x"], "y": client["y"]})
         CLIENTS.append({
             "id": command["id"], 
+            "x": 480,
+            "y": 360,
             "socket": websocket, 
             "messages": messages,
             "state": "default"
