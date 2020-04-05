@@ -50,9 +50,10 @@ async def consumer(message, websocket):
         # NOTIFY THE CLIENT OF EXISTING CLIENTS
         messages = []
         for client in CLIENTS:
-            messages.append({"command": "create", "id": client["id"], "x": client["x"], "y": client["y"]})
+            messages.append({"command": "create", "id": client["id"], "name": command["name"], "x": client["x"], "y": client["y"]})
         CLIENTS.append({
             "id": command["id"], 
+            "name": command["name"],
             "x": 480,
             "y": 360,
             "socket": websocket, 
@@ -60,7 +61,13 @@ async def consumer(message, websocket):
             "state": "default"
         })
         # Have an initial message in the client to signal it has joined
-        sendMessage({"command": "create", "id": command["id"], "x": 480, "y": 360, "state": "default"})
+        sendMessage({
+            "command": "create", 
+            "id": command["id"], 
+            "name": command["name"],
+            "x": 480, 
+            "y": 360, 
+            "state": "default"})
     if command["command"] == "move":
         client = getClient(command["id"])
         if client and client["state"] == "default":
@@ -100,7 +107,7 @@ async def producer_handler(websocket, path):
         if message is not None:
             await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
         # JUST LEAVE UPDATE LOOP HERE AND HOPE IT WORKS
         update()
 
