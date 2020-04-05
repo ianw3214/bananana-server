@@ -14,7 +14,7 @@ FISH = ["GOLDFISH", "COMMON CARP", "CLOWNFISH", "CATFISH",
 
 def sendMessage(message):
     for player in PLAYERS:
-        player["message"].append(message)
+        player["messages"].append(message)
 
 def getPlayer(target):
     for player in PLAYERS:
@@ -31,7 +31,8 @@ def updatePlayers():
                 sendMessage({
                     "command": "fish",
                     "id": player["id"],
-                    "fish": FISH[random.randint(0, 7)]
+                    "fish": FISH[random.randint(0, 7)],
+                    "debug": "Name: " + player["name"]
                 })
 
 def createPlayer(data, websocket):
@@ -82,7 +83,7 @@ def movePlayer(data):
 def playerInteract(data):
     player = getPlayer(data["id"])
     if player:
-        if data["cation"] == "fishing":
+        if data["action"] == "fishing":
             player["state"] = "fishing"
         sendMessage({
             "command": "interact",

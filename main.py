@@ -55,17 +55,11 @@ async def hello(websocket, path):
         task.cancel()
 
 if __name__ == "__main__":
-
-    # cred = credentials.Certificate("bananana-e9e13-firebase-adminsdk-o1si6-9f161ccc64.json")
-    # firebase_admin.initialize_app(cred)
-
     # Firestore stuff
     db = firestore.Client()
 
-
     address = "0.0.0.0"
     port = 0
-
     if os.getenv("ADDRESS"):
         address = os.environ["ADDRESS"]
     if os.getenv("PORT"):
