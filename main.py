@@ -23,7 +23,7 @@ async def consumer(message, websocket):
         players.playerInteract(command)
 
 async def producer(websocket):
-    players.getMessages(websocket)
+    return players.getMessages(websocket)
 
 async def consumer_handler(websocket, path):
     async for message in websocket:

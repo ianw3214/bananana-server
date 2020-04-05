@@ -27,7 +27,7 @@ def updatePlayers():
         if player["state"] == "fishing":
             # Randomly let the player find a fish
             if random.randint(0, 10) == 0:
-                player["state"] == "default"
+                player["state"] = "default"
                 sendMessage({
                     "command": "fish",
                     "id": player["id"],
@@ -98,6 +98,7 @@ def getMessages(websocket):
                 message = {"messages": player["messages"].copy()}
                 player["messages"].clear()
                 return json.dumps(message)
+    return None
 
 def removePlayer(websocket):
     target = 0
