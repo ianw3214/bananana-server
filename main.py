@@ -5,101 +5,31 @@ import websockets
 import os
 import json
 import sys
-import random
 
-# TEMPORARY
-import datetime
-import random
+from google.cloud import firestore
+import firebase_admin
+from firebase_admin import credentials
 
-# CLIENT PROPERTIES
-# - id: client id
-# - x: client x position
-# - y: client y position
-# - state: client state in case the client is doing something
-CLIENTS = []
-
-def getClient(target):
-    for client in CLIENTS:
-        if client["id"] == target:
-            return client
-    return None
-
-# TEMPORARY CODE FOR FISHING
-FISH = ["GOLDFISH", "COMMON CARP", "CLOWNFISH", "CATFISH", "SWORDFISH", "SALMON", "LARGE COD", "SERGIO"]
-
-def update():
-    for client in CLIENTS:
-        if client["state"] == "fishing":
-            # Randomly let the client find a fish
-            if random.randint(0, 10) == 0:
-                client["state"] = "default"
-                sendMessage({
-                    "command": "fish",
-                    "id": client["id"],
-                    "fish": FISH[random.randint(0, 7)]
-                })
-
-def sendMessage(message):
-    for client in CLIENTS:
-        client["messages"].append(message)
+import players
 
 async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
     command = json.loads(message)
     if command["command"] == "create":
-        # NOTIFY THE CLIENT OF EXISTING CLIENTS
-        messages = []
-        for client in CLIENTS:
-            messages.append({"command": "create", "id": client["id"], "name": command["name"], "x": client["x"], "y": client["y"]})
-        CLIENTS.append({
-            "id": command["id"], 
-            "name": command["name"],
-            "x": 480,
-            "y": 360,
-            "socket": websocket, 
-            "messages": messages,
-            "state": "default"
-        })
-        # Have an initial message in the client to signal it has joined
-        sendMessage({
-            "command": "create", 
-            "id": command["id"], 
-            "name": command["name"],
-            "x": 480, 
-            "y": 360, 
-            "state": "default"})
+        players.createPlayer(command, websocket)
     if command["command"] == "move":
-        client = getClient(command["id"])
-        if client and client["state"] == "default":
-            client["x"] = command["x"]
-            client["y"] = command["y"]
-            sendMessage({"command": "move", "id": command["id"], "x": command["x"], "y": command["y"], "debug": "STATE: " + client["state"]})
+        players.movePlayer(command)
     if command["command"] == "interact":
-        client = getClient(command["id"])
-        if client:
-            if command["action"] == "fishing":
-                client["state"] = "fishing"
-            sendMessage({"command": "interact", "id": command["id"], "action": "fishing"})
+        players.playerInteract(command)
 
 async def producer(websocket):
-    for client in CLIENTS:
-        if client["socket"] == websocket:
-            if len(client["messages"]) > 0:
-                message = { "messages": client["messages"].copy() }
-                client["messages"].clear()
-                return json.dumps(message)
+    players.getMessages(websocket)
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(message, websocket)
     # Once the while loop breaks, that means the client has disconnected
-    target = 0
-    for client in CLIENTS:
-        if client["socket"] == websocket:
-            target = client["id"]
-            CLIENTS.remove(client)
-    if target != 0:
-        sendMessage({"command": "remove", "id": target})
+    players.removePlayer(websocket)
 
 async def producer_handler(websocket, path):
     while True:
@@ -109,7 +39,9 @@ async def producer_handler(websocket, path):
         # SEND MESSAGES AT A 1 SECOND INTERVAL
         await asyncio.sleep(0.3)
         # JUST LEAVE UPDATE LOOP HERE AND HOPE IT WORKS
-        update()
+        # TODO: This is wrong, this will update the players each tick once for EVERY PLAYER
+        # E.G. the more players that exist, the faster it will update
+        players.updatePlayers()
 
 # WebSocket server example
 async def hello(websocket, path):
@@ -123,6 +55,14 @@ async def hello(websocket, path):
         task.cancel()
 
 if __name__ == "__main__":
+
+    # cred = credentials.Certificate("bananana-e9e13-firebase-adminsdk-o1si6-9f161ccc64.json")
+    # firebase_admin.initialize_app(cred)
+
+    # Firestore stuff
+    db = firestore.Client()
+
+
     address = "0.0.0.0"
     port = 0
 
