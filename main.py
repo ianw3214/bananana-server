@@ -6,10 +6,7 @@ import os
 import json
 import sys
 
-from google.cloud import firestore
-import firebase_admin
-from firebase_admin import credentials
-
+import database
 import players
 
 async def consumer(message, websocket):
@@ -21,6 +18,8 @@ async def consumer(message, websocket):
         players.movePlayer(command)
     if command["command"] == "interact":
         players.playerInteract(command)
+    if command["command"] == "inventory":
+        players.sendInventoryInfo(command)
 
 async def producer(websocket):
     return players.getMessages(websocket)
@@ -55,8 +54,7 @@ async def hello(websocket, path):
         task.cancel()
 
 if __name__ == "__main__":
-    # Firestore stuff
-    db = firestore.Client()
+    database.getPlayerData("IAN");
 
     address = "0.0.0.0"
     port = 0
@@ -64,6 +62,8 @@ if __name__ == "__main__":
         address = os.environ["ADDRESS"]
     if os.getenv("PORT"):
         port = os.environ["PORT"]
+
+    database.init()
 
     start_server = websockets.serve(hello, address, port);
     print("SERVER STARTED")

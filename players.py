@@ -1,6 +1,8 @@
 import random
 import json
 
+import database
+
 # PLAYERPROPERTIES
 # - id: player id
 # - x: player x position
@@ -16,6 +18,12 @@ def sendMessage(message):
     for player in PLAYERS:
         player["messages"].append(message)
 
+def sendMessageTo(message, id):
+    for player in PLAYERS:
+        if player["id"] == id:
+            player["messages"].append(message)
+            break
+
 def getPlayer(target):
     for player in PLAYERS:
         if player["id"] == target:
@@ -27,13 +35,15 @@ def updatePlayers():
         if player["state"] == "fishing":
             # Randomly let the player find a fish
             if random.randint(0, 10) == 0:
+                fish = FISH[random.randint(0, 7)]
                 player["state"] = "default"
-                sendMessage({
+                sendMessageTo({
                     "command": "fish",
                     "id": player["id"],
-                    "fish": FISH[random.randint(0, 7)],
+                    "fish": fish,
                     "debug": "Name: " + player["name"]
-                })
+                }, player["id"])
+                database.addPlayerInventoryItem(player["name"], fish)
 
 def createPlayer(data, websocket):
     # Notify the client of existing clients
@@ -57,6 +67,8 @@ def createPlayer(data, websocket):
         "messages": messages,
         "state": "default"
     })
+    # Make sure the player exists in the database
+    database.getPlayerData(data["name"])
     # Notify all clients of the new player
     sendMessage({
         "command": "create",
@@ -64,7 +76,8 @@ def createPlayer(data, websocket):
         "name": data["name"],
         "x": 480,
         "y": 360,
-        "state": "default"
+        "state": "default",
+        "debug": database.getPlayerData("default")["name"]
     })
 
 def movePlayer(data):
@@ -108,3 +121,11 @@ def removePlayer(websocket):
             PLAYERS.remove(player)
     if target != 0:
         sendMessage({"command": "remove", "id": target})
+
+
+def sendInventoryInfo(command):
+    player_db = database.getPlayerData(command["name"])
+    sendMessageTo({
+        "command": "inventory",
+        "inventory": player_db["inventory"]
+    }, command["id"])
