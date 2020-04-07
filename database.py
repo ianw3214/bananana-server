@@ -25,10 +25,7 @@ def getPlayerData(name):
         return document.to_dict()
 
 def addPlayerInventoryItem(name, item):
-    users = firestore.Client(credentials={
-        "client_email": os.getenv("client_email"),
-        "private_key": os.getenv("private_key")
-    }).collection(u'users')
+    users = firestore.Client().collection(u'users')
     document = users.document(name).get()
     if not document.exists:
         # TODO: HANDLE ERROR
