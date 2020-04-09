@@ -27,7 +27,7 @@ async def producer(websocket):
 async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(message, websocket)
-    # Once the while loop breaks, that means the client has disconnected
+    # Once the while loop breaks, that means the cinlient has disconnected
     players.removePlayer(websocket)
 
 async def producer_handler(websocket, path):
@@ -36,11 +36,7 @@ async def producer_handler(websocket, path):
         if message is not None:
             await websocket.send(message)
         # SEND MESSAGES AT A 1 SECOND INTERVAL
-        await asyncio.sleep(0.3)
-        # JUST LEAVE UPDATE LOOP HERE AND HOPE IT WORKS
-        # TODO: This is wrong, this will update the players each tick once for EVERY PLAYER
-        # E.G. the more players that exist, the faster it will update
-        players.updatePlayers()
+        await asyncio.sleep(0.2)
 
 # WebSocket server example
 async def hello(websocket, path):
@@ -52,6 +48,12 @@ async def hello(websocket, path):
     )
     for task in pending:
         task.cancel()
+
+async def update_loop():
+    while True:
+        players.updatePlayers()
+        # Update players only a few times every second
+        await asyncio.sleep(0.2)
 
 if __name__ == "__main__":
     database.getPlayerData("IAN");
@@ -66,7 +68,8 @@ if __name__ == "__main__":
     database.init()
 
     start_server = websockets.serve(hello, address, port);
-    print("SERVER STARTED")
+    
+    asyncio.get_event_loop().create_task(update_loop())
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()

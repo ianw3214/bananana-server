@@ -62,7 +62,7 @@ def createPlayer(data, websocket):
         "id": data["id"],
         "name": data["name"],
         "x": 480,
-        "y": 360,
+        "y": 480,
         "socket": websocket,
         "messages": messages,
         "state": "default"
@@ -75,7 +75,7 @@ def createPlayer(data, websocket):
         "id": data["id"],
         "name": data["name"],
         "x": 480,
-        "y": 360,
+        "y": 480,
         "state": "default",
         "debug": database.getPlayerData("default")["name"]
     })
