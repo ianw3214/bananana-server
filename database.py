@@ -16,7 +16,8 @@ def getPlayerData(name):
     else:
         users.add({
             "name": name, 
-            "inventory": ["root"]
+            "inventory": ["root"],
+            "money": 0
         }, name)
         document = users.document(name).get()
         if not document.exists:

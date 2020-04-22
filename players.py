@@ -129,3 +129,17 @@ def sendInventoryInfo(command):
         "command": "inventory",
         "inventory": player_db["inventory"]
     }, command["id"])
+
+def sendMoneyInfo(command):
+    # GET THE NAME FROM COMMAND ID
+    target = None
+    for player in PLAYERS:
+        if (player["id"] == command["id"]):
+            target = player
+    if not target:
+        return
+    player_db = database.getPlayerData(target["name"])
+    sendMessageTo({
+        "command": "money",
+        "money": player_db["money"]
+    }, command["id"])

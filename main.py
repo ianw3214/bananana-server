@@ -20,6 +20,8 @@ async def consumer(message, websocket):
         players.playerInteract(command)
     if command["command"] == "inventory":
         players.sendInventoryInfo(command)
+    if command["command"] == "money":
+        players.sendMoneyInfo(command)
 
 async def producer(websocket):
     return players.getMessages(websocket)
