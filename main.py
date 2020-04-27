@@ -22,6 +22,8 @@ async def consumer(message, websocket):
         players.sendInventoryInfo(command)
     if command["command"] == "money":
         players.sendMoneyInfo(command)
+    if command["command"] == "sell":
+        players.sellInventoryItem(command)
 
 async def producer(websocket):
     return players.getMessages(websocket)

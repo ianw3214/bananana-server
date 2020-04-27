@@ -143,3 +143,31 @@ def sendMoneyInfo(command):
         "command": "money",
         "money": player_db["money"]
     }, command["id"])
+
+def sellInventoryItem(command):
+    # GET THE NAME FROM COMMAND ID
+    target = None
+    for player in PLAYERS:
+        if (player["id"] == command["id"]):
+            target = player
+    if not target:
+        return
+    player_db = database.getPlayerData(target["name"])
+    # The incoming index doesn't account for the root, so we need to account for that
+    fish = player_db["inventory"][command["index"]]
+    if fish == "SERGIO":
+        player_db["money"] = player_db["money"] + 10
+    else:
+        player_db["money"] = player_db["money"] + 1
+    del player_db["inventory"][command["index"]]
+    # Update the database
+    database.setPlayerData(command["name"], player_db)
+    # REFRESH THE INVENTORY/MONEY INFO FOR THE PLAYER ONCE UPDATED
+    sendMessageTo({
+        "command": "inventory",
+        "inventory": player_db["inventory"]
+    }, command["id"])
+    sendMessageTo({
+        "command": "money",
+        "money": player_db["money"]
+    }, command["id"])
