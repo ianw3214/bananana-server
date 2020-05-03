@@ -8,6 +8,7 @@ import sys
 
 import database
 import players
+import shop
 
 async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
@@ -24,6 +25,12 @@ async def consumer(message, websocket):
         players.sendMoneyInfo(command)
     if command["command"] == "sell":
         players.sellInventoryItem(command)
+    if command["command"] == "buy":
+        shop.buy(command)
+    if command["command"] == "wardrobe":
+        players.sendWardrobeInfo(command)
+    if command["command"] == "style":
+        players.updatePlayerStyle(command)
 
 async def producer(websocket):
     return players.getMessages(websocket)
@@ -60,8 +67,6 @@ async def update_loop():
         await asyncio.sleep(0.2)
 
 if __name__ == "__main__":
-    database.getPlayerData("IAN");
-
     address = "0.0.0.0"
     port = 0
     if os.getenv("ADDRESS"):

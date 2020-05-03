@@ -46,6 +46,9 @@ def updatePlayers():
                 database.addPlayerInventoryItem(player["name"], fish)
 
 def createPlayer(data, websocket):
+    # Make sure the player exists in the database
+    database.getPlayerData(data["name"])
+    wardrobe = database.getPlayerWardrobeData(data["name"])
     # Notify the client of existing clients
     messages = []
     for player in PLAYERS:
@@ -55,7 +58,8 @@ def createPlayer(data, websocket):
             "name": player["name"],
             "x": player["x"],
             "y": player["y"],
-            "state": player["state"]
+            "state": player["state"],
+            "hair": player["hair"]
         })
     # Add the player to our list of players
     PLAYERS.append({
@@ -65,10 +69,9 @@ def createPlayer(data, websocket):
         "y": 480,
         "socket": websocket,
         "messages": messages,
-        "state": "default"
+        "state": "default",
+        "hair": wardrobe["hair"]["current"]
     })
-    # Make sure the player exists in the database
-    database.getPlayerData(data["name"])
     # Notify all clients of the new player
     sendMessage({
         "command": "create",
@@ -77,6 +80,7 @@ def createPlayer(data, websocket):
         "x": 480,
         "y": 480,
         "state": "default",
+        "hair": wardrobe["hair"]["current"],
         "debug": database.getPlayerData("default")["name"]
     })
 
@@ -130,6 +134,13 @@ def sendInventoryInfo(command):
         "inventory": player_db["inventory"]
     }, command["id"])
 
+def sendWardrobeInfo(command):
+    wardrobe = database.getPlayerWardrobeData(command["name"])
+    sendMessageTo({
+        "command": "wardrobe",
+        "wardrobe": wardrobe
+    }, command["id"])
+
 def sendMoneyInfo(command):
     # GET THE NAME FROM COMMAND ID
     target = None
@@ -171,3 +182,18 @@ def sellInventoryItem(command):
         "command": "money",
         "money": player_db["money"]
     }, command["id"])
+
+# Items are hard coded for now
+# Eventually will want to read from a file
+def updatePlayerStyle(command):
+    if command["item"] == -1 or command["item"] == 0:
+        wardrobe = database.getPlayerWardrobeData(command["name"])
+        # Make sure it is unlocked to be able to equip it
+        if command["item"] in wardrobe["hair"]["unlocked"]:
+            wardrobe["hair"]["current"] = command["item"]
+            database.setPlayerWardrobeData(command["name"], wardrobe)
+            sendMessage({
+                "command": "style",
+                "id": command["id"],
+                "item": command["item"]
+            })

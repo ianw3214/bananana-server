@@ -42,3 +42,32 @@ def addPlayerInventoryItem(name, item):
     player_data = document.to_dict()
     player_data["inventory"].append(item)
     users.document(name).set(player_data)
+
+def getPlayerWardrobeData(name):
+    # Firestore stuff
+    wardrobe = firestore.Client().collection(u'wardrobe')
+    document = wardrobe.document(name).get()
+    if document.exists:
+        return document.to_dict()
+    else:
+        wardrobe.add({
+            "hair": {
+                "current": -1,
+                "unlocked": [
+                    -1
+                ]
+            }
+        }, name)
+        document = wardrobe.document(name).get()
+        if not document.exists:
+            # TODO: HANDLE ERROR
+            pass
+        return document.to_dict()
+
+def setPlayerWardrobeData(name, data):
+    wardrobe = firestore.Client().collection(u'wardrobe')
+    document = wardrobe.document(name).get()
+    if not document.exists:
+        # TODO: HANDLE ERROR
+        pass
+    wardrobe.document(name).set(data)
