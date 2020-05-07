@@ -16,3 +16,5 @@ def buy(command):
                 database.setPlayerWardrobeData(command["name"], wardrobe)
                 database.setPlayerData(command["name"], player)
                 players.sendMoneyInfo(command)
+                # Also send the wardrobe info so we can update it on client side
+                players.sendWardrobeInfo({"name": command["name"], "id": command["id"]})

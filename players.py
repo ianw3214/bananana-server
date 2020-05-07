@@ -44,6 +44,8 @@ def updatePlayers():
                     "debug": "Name: " + player["name"]
                 }, player["id"])
                 database.addPlayerInventoryItem(player["name"], fish)
+                # Also send inventory info once the player fishes a new fish
+                sendInventoryInfo({"name": player["name"], "id": player["id"]})
 
 def createPlayer(data, websocket):
     # Make sure the player exists in the database
