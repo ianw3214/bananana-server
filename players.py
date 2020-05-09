@@ -9,6 +9,7 @@ import database
 # - y: player y position
 # - state: player state in case the player is doing something
 PLAYERS = []
+FAILED_LOGINS = []
 
 # TEMPORARY CODE FOR FISHING
 FISH = ["GOLDFISH", "COMMON CARP", "CLOWNFISH", "CATFISH",
@@ -47,10 +48,25 @@ def updatePlayers():
                 # Also send inventory info once the player fishes a new fish
                 sendInventoryInfo({"name": player["name"], "id": player["id"]})
 
-def createPlayer(data, websocket):
+def login(data, websocket):
     # Make sure the player exists in the database
-    database.getPlayerData(data["name"])
-    wardrobe = database.getPlayerWardrobeData(data["name"])
+    result = database.tryLogin(data["name"], data["password"])
+    if result:
+        # Create a new session ID for the player
+        session_id = random.randint(0, 1000000)
+        createPlayer(data["name"], session_id, websocket)
+        sendMessageTo({
+            "command": "login",
+            "success": True,
+            "id": session_id
+        }, session_id)
+    else:
+        FAILED_LOGINS.append(websocket)
+
+def createPlayer(name, session_id, websocket):
+    # Make sure the player exists in the database
+    database.getPlayerData(name)
+    wardrobe = database.getPlayerWardrobeData(name)
     # Notify the client of existing clients
     messages = []
     for player in PLAYERS:
@@ -65,8 +81,8 @@ def createPlayer(data, websocket):
         })
     # Add the player to our list of players
     PLAYERS.append({
-        "id": data["id"],
-        "name": data["name"],
+        "id": session_id,
+        "name": name,
         "x": 480,
         "y": 480,
         "socket": websocket,
@@ -77,8 +93,9 @@ def createPlayer(data, websocket):
     # Notify all clients of the new player
     sendMessage({
         "command": "create",
-        "id": data["id"],
-        "name": data["name"],
+        # TODO: THIS ID SHOULD REALLY NOT BE BROADCASTED TO ALL PLAYERS
+        "id": session_id,
+        "name": name,
         "x": 480,
         "y": 480,
         "state": "default",

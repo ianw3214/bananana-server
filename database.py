@@ -7,6 +7,20 @@ from firebase_admin import credentials
 def init():
     pass
 
+def tryLogin(name, password):
+    logins = firestore.Client().collection(u'login')
+    # The documents will just be identified by the username itself
+    document = logins.document(name).get()
+    if document.exists:
+        return password == document.to_dict()["password"]
+    else:
+        # Always login successfully if creating new player
+        logins.add({
+            "username": name,
+            "password": password
+        }, name)
+        return True
+
 def getPlayerData(name):
     # Firestore stuff
     users = firestore.Client().collection(u'users')

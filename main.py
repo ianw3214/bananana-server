@@ -13,8 +13,8 @@ import shop
 async def consumer(message, websocket):
     # ASSUME INCOMING MESSAGE IS A JSON OBJECT
     command = json.loads(message)
-    if command["command"] == "create":
-        players.createPlayer(command, websocket)
+    if command["command"] == "login":
+        players.login(command, websocket)
     if command["command"] == "move":
         players.movePlayer(command)
     if command["command"] == "interact":
@@ -33,6 +33,9 @@ async def consumer(message, websocket):
         players.updatePlayerStyle(command)
 
 async def producer(websocket):
+    if websocket in players.FAILED_LOGINS:
+        players.FAILED_LOGINS.remove(websocket)
+        return json.dumps({"messages": [{"command": "login", "success": False}]})
     return players.getMessages(websocket)
 
 async def consumer_handler(websocket, path):
