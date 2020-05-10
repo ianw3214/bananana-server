@@ -209,14 +209,16 @@ def sellInventoryItem(command):
 # Items are hard coded for now
 # Eventually will want to read from a file
 def updatePlayerStyle(command):
-    if command["item"] == -1 or command["item"] == 0:
+    # Handle hair
+    item = command["item"]
+    if item == -1 or item == 0 or item == 1:
         wardrobe = database.getPlayerWardrobeData(command["name"])
         # Make sure it is unlocked to be able to equip it
-        if command["item"] in wardrobe["hair"]["unlocked"]:
-            wardrobe["hair"]["current"] = command["item"]
+        if item in wardrobe["hair"]["unlocked"]:
+            wardrobe["hair"]["current"] = item
             database.setPlayerWardrobeData(command["name"], wardrobe)
             sendMessage({
                 "command": "style",
                 "id": command["id"],
-                "item": command["item"]
+                "item": item
             })
