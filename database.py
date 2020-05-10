@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 from google.cloud import firestore
 import firebase_admin
@@ -7,19 +8,54 @@ from firebase_admin import credentials
 def init():
     pass
 
+class LoginResult(Enum):
+    SUCCESS = 0
+    SESSION_EXISTS = 1
+    WRONG_PASSWORD = 2
+
 def tryLogin(name, password):
     logins = firestore.Client().collection(u'login')
     # The documents will just be identified by the username itself
     document = logins.document(name).get()
     if document.exists:
-        return password == document.to_dict()["password"]
+        data = document.to_dict()
+        if password != data["password"]:
+            return LoginResult.WRONG_PASSWORD
+        if data["session"] != 0:
+            return LoginResult.SESSION_EXISTS
+        if password == data["password"] and data["session"] == 0:
+            return LoginResult.SUCCESS
     else:
         # Always login successfully if creating new player
         logins.add({
             "username": name,
-            "password": password
+            "password": password,
+            "session": 0
         }, name)
-        return True
+        return LoginResult.SUCCESS
+
+# Update the database with the logged in session id
+def Login(name, session_id):
+    logins = firestore.Client().collection(u'login')
+    document = logins.document(name).get()
+    if document.exists:
+        data = document.to_dict()
+        data["session"] = session_id
+        logins.document(name).set(data)
+    else:
+        # TODO: Error handling
+        pass
+
+def Logout(name):
+    logins = firestore.Client().collection(u'login')
+    document = logins.document(name).get()
+    if document.exists:
+        data = document.to_dict()
+        data["session"] = 0
+        logins.document(name).set(data)
+    else:
+        # TODO: Error handling
+        pass
 
 def getPlayerData(name):
     # Firestore stuff

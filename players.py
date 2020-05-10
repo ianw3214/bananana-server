@@ -9,7 +9,7 @@ import database
 # - y: player y position
 # - state: player state in case the player is doing something
 PLAYERS = []
-FAILED_LOGINS = []
+FAILED_LOGINS = {}
 
 # TEMPORARY CODE FOR FISHING
 FISH = ["GOLDFISH", "COMMON CARP", "CLOWNFISH", "CATFISH",
@@ -51,7 +51,7 @@ def updatePlayers():
 def login(data, websocket):
     # Make sure the player exists in the database
     result = database.tryLogin(data["name"], data["password"])
-    if result:
+    if result == database.LoginResult.SUCCESS:
         # Create a new session ID for the player
         session_id = random.randint(0, 1000000)
         createPlayer(data["name"], session_id, websocket)
@@ -60,8 +60,11 @@ def login(data, websocket):
             "success": True,
             "id": session_id
         }, session_id)
+        database.Login(data["name"], session_id)
+    elif result == database.LoginResult.SESSION_EXISTS:
+        FAILED_LOGINS[websocket] = database.LoginResult.SESSION_EXISTS
     else:
-        FAILED_LOGINS.append(websocket)
+        FAILED_LOGINS[websocket] = database.LoginResult.WRONG_PASSWORD
 
 def createPlayer(name, session_id, websocket):
     # Make sure the player exists in the database
@@ -140,6 +143,7 @@ def removePlayer(websocket):
     target = 0
     for player in PLAYERS:
         if player["socket"] == websocket:
+            database.Logout(player["name"])
             target = player["id"]
             PLAYERS.remove(player)
     if target != 0:

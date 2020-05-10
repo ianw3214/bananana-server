@@ -34,8 +34,12 @@ async def consumer(message, websocket):
 
 async def producer(websocket):
     if websocket in players.FAILED_LOGINS:
-        players.FAILED_LOGINS.remove(websocket)
-        return json.dumps({"messages": [{"command": "login", "success": False}]})
+        result = players.FAILED_LOGINS[websocket]
+        del players.FAILED_LOGINS[websocket]
+        if result == database.LoginResult.SESSION_EXISTS:
+            return json.dumps({"messages": [{"command": "login", "success": False, "type": result.value}]})
+        else:
+            return json.dumps({"messages": [{"command": "login", "success": False, "type": result.value}]})
     return players.getMessages(websocket)
 
 async def consumer_handler(websocket, path):
